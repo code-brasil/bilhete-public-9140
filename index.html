@@ -4,11 +4,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <title>Eventos no Brasil</title>
+    <style>
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      }
+    </style>
   </head>
-  <body class="p-4">
-    <h1 class="text-3xl font-bold mb-4">Eventos no Brasil</h1>
-    <a href="admin.html" class="text-blue-500 underline mb-4 inline-block">Painel Admin</a>
-    <div id="eventsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  <body class="min-h-screen bg-gray-900 py-8">
+    <div class="container mx-auto px-4">
+      <div class="mb-8 text-center">
+        <h1 class="text-5xl font-bold text-white mb-4">Eventos no Brasil</h1>
+        <a href="admin.html" class="text-blue-400 underline hover:text-blue-600">Painel Admin</a>
+      </div>
+      <div id="eventsList" class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Os cartões de eventos serão carregados aqui -->
+      </div>
+    </div>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         fetch('http://localhost:8000/functions/bilhete/process', {
@@ -22,13 +33,13 @@
           if(data.events) {
             data.events.forEach(ev => {
               const div = document.createElement('div');
-              div.className = 'border p-4 rounded';
+              div.className = 'bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl p-6 shadow-lg transition transform hover:-translate-y-1 hover:shadow-2xl';
               div.innerHTML = `
-                <h2 class="text-xl font-semibold">${ev.name}</h2>
-                <img src="${ev.image}" alt="${ev.name}" class="w-48 h-48 object-cover my-2">
-                <p>Data/Hora: ${ev.datetime}</p>
-                <p>Preço: R$ ${(ev.price / 100).toFixed(2)}</p>
-                <a href="event.html?event_id=${ev.id}" class="text-blue-500 underline">Ver Detalhes</a>
+                <h2 class="text-2xl font-semibold text-white mb-2">${ev.name}</h2>
+                <img src="${ev.image}" alt="${ev.name}" class="w-full h-48 object-cover rounded-md mb-4">
+                <p class="text-gray-300 mb-2">Data/Hora: ${ev.datetime}</p>
+                <p class="text-gray-300 mb-4">Preço: R$ ${(ev.price / 100).toFixed(2)}</p>
+                <a href="event.html?event_id=${ev.id}" class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Ver Detalhes</a>
               `;
               list.appendChild(div);
             });
