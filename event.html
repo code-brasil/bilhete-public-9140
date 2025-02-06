@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Detalhe do Evento</title>
+  </head>
+  <body class="p-4">
+    <div id="eventDetails"></div>
+    <button id="buyBtn" class="bg-green-500 text-white p-2 mt-4 rounded">Comprar Ingresso via Pix</button>
+    <script>
+      function getParameterByName(name) {
+        const url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+        const results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+      }
+      const eventId = getParameterByName('event_id');
+      fetch('http://localhost:8000/functions/bilhete/process', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({action:'list_events'})
+      })
+      .then(response => response.json())
+      .then(data => {
+        const event = data.events.find(ev => String(ev.id) === eventId);
+        if(event){
+          const details = document.getElementById('eventDetails');
+          details.innerHTML = `
+            <h1 class="text-3xl font-bold">${event.name}</h1>
+            <img src="${event.image}" alt="${event.name}" class="w-64 h-64 object-cover my-2">
+            <p>Data/Hora: ${event.datetime}</p>
+            <p>Preço: R$ ${(event.price/100).toFixed(2)}</p>
+          `;
+          document.getElementById('buyBtn').onclick = function(){
+            const customer_name = prompt('Digite seu nome:');
+            const customer_email = prompt('Digite seu email:');
+            fetch('http://localhost:8000/functions/bilhete/process', {
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({
+                action: 'buy_ticket',
+                event_id: event.id,
+                customer_name: customer_name,
+                customer_email: customer_email
+              })
+            })
+            .then(res=>res.json())
+            .then(resp=>{
+              if(resp.payment && resp.payment.url){
+                window.location.href = resp.payment.url;
+              } else {
+                alert('Erro na compra');
+              }
+            });
+          };
+        } else {
+          document.getElementById('eventDetails').innerText = 'Evento não encontrado.';
+          document.getElementById('buyBtn').style.display = 'none';
+        }
+      });
+    </script>
+  </body>
+</html>
