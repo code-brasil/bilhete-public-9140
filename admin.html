@@ -5,17 +5,53 @@
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <title>Painel Admin - Eventos</title>
   </head>
-  <body class="p-4">
-    <h1 class="text-3xl font-bold mb-4">Painel Admin - Gerenciar Eventos</h1>
-    <form id="eventForm" class="mb-4 space-y-2">
-      <input type="text" name="name" placeholder="Nome do Evento" class="border p-2 w-full" required>
-      <input type="text" name="image" placeholder="URL da Imagem" class="border p-2 w-full" required>
-      <input type="text" name="datetime" placeholder="Data/Hora" class="border p-2 w-full" required>
-      <input type="number" name="price" placeholder="Preço (em centavos)" class="border p-2 w-full" required>
-      <button type="submit" class="bg-blue-500 text-white p-2 rounded">Criar Evento</button>
-    </form>
-    <div id="response" class="text-green-600 font-semibold"></div>
+  <body class="p-4 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8">Painel Admin</h1>
+      <div class="grid md:grid-cols-2 gap-8">
+        <div>
+          <h2 class="text-xl font-semibold mb-4">Criar Evento</h2>
+          <form id="eventForm" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <input type="text" name="name" placeholder="Nome do Evento" class="border p-2 w-full rounded" required>
+            <input type="text" name="image" placeholder="URL da Imagem" class="border p-2 w-full rounded" required>
+            <input type="text" name="datetime" placeholder="Data/Hora" class="border p-2 w-full rounded" required>
+            <input type="number" name="price" placeholder="Preço (em centavos)" class="border p-2 w-full rounded" required>
+            <select name="category_id" class="border p-2 w-full rounded" required>
+              <option value="">Selecione uma categoria</option>
+            </select>
+            <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Criar Evento</button>
+          </form>
+        </div>
+        <div>
+          <h2 class="text-xl font-semibold mb-4">Criar Categoria</h2>
+          <form id="categoryForm" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+            <input type="text" name="name" placeholder="Nome da Categoria" class="border p-2 w-full rounded" required>
+            <input type="color" name="color" value="#3b82f6" class="w-full h-10">
+            <button type="submit" class="bg-green-600 text-white p-2 rounded w-full hover:bg-green-700">Criar Categoria</button>
+          </form>
+        </div>
+      </div>
+      <div id="response" class="mt-8 text-green-600 font-semibold"></div>
+    </div>
     <script>
+      function loadCategories() {
+        fetch('http://localhost:8000/functions/bilhete/process', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({action: 'list_categories'})
+        })
+        .then(res => res.json())
+        .then(data => {
+          const select = document.querySelector('select[name="category_id"]');
+          select.innerHTML = '<option value="">Selecione uma categoria</option>';
+          data.categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.name;
+            select.appendChild(option);
+          });
+        });
+      }
       document.getElementById('eventForm').addEventListener('submit', function(e){
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -23,7 +59,8 @@
           name: formData.get('name'),
           image: formData.get('image'),
           datetime: formData.get('datetime'),
-          price: parseInt(formData.get('price'))
+          price: parseInt(formData.get('price')),
+          category_id: parseInt(formData.get('category_id'))
         };
         fetch('http://localhost:8000/functions/bilhete/create_user', {
           method:'POST',
@@ -36,6 +73,26 @@
           e.target.reset();
         });
       });
+      document.getElementById('categoryForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+          name: formData.get('name'),
+          color: formData.get('color')
+        };
+        fetch('http://localhost:8000/functions/bilhete/create_category', {
+          method:'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        })
+        .then(res=>res.json())
+        .then(res=>{
+          document.getElementById('response').innerText = 'Categoria criada com ID: ' + res.category_id;
+          e.target.reset();
+          loadCategories();
+        });
+      });
+      loadCategories();
     </script>
   </body>
 </html>
