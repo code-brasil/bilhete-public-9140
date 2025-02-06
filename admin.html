@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Painel Admin - Eventos</title>
+  </head>
+  <body class="p-4">
+    <h1 class="text-3xl font-bold mb-4">Painel Admin - Gerenciar Eventos</h1>
+    <form id="eventForm" class="mb-4 space-y-2">
+      <input type="text" name="name" placeholder="Nome do Evento" class="border p-2 w-full" required>
+      <input type="text" name="image" placeholder="URL da Imagem" class="border p-2 w-full" required>
+      <input type="text" name="datetime" placeholder="Data/Hora" class="border p-2 w-full" required>
+      <input type="number" name="price" placeholder="Preço (em centavos)" class="border p-2 w-full" required>
+      <button type="submit" class="bg-blue-500 text-white p-2 rounded">Criar Evento</button>
+    </form>
+    <div id="response" class="text-green-600 font-semibold"></div>
+    <script>
+      document.getElementById('eventForm').addEventListener('submit', function(e){
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+          name: formData.get('name'),
+          image: formData.get('image'),
+          datetime: formData.get('datetime'),
+          price: parseInt(formData.get('price'))
+        };
+        fetch('http://localhost:8000/functions/bilhete/create_user', {
+          method:'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(data)
+        })
+        .then(res=>res.json())
+        .then(res=>{
+          document.getElementById('response').innerText = 'Evento criado com ID: ' + res.event_id;
+          e.target.reset();
+        });
+      });
+    </script>
+  </body>
+</html>
