@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <title>Eventos no Brasil</title>
+  </head>
+  <body class="p-4">
+    <h1 class="text-3xl font-bold mb-4">Eventos no Brasil</h1>
+    <a href="admin.html" class="text-blue-500 underline mb-4 inline-block">Painel Admin</a>
+    <div id="eventsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        fetch('http://localhost:8000/functions/bilhete/process', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({action: 'list_events'})
+        })
+        .then(response => response.json())
+        .then(data => {
+          const list = document.getElementById('eventsList');
+          if(data.events) {
+            data.events.forEach(ev => {
+              const div = document.createElement('div');
+              div.className = 'border p-4 rounded';
+              div.innerHTML = `
+                <h2 class="text-xl font-semibold">${ev.name}</h2>
+                <img src="${ev.image}" alt="${ev.name}" class="w-48 h-48 object-cover my-2">
+                <p>Data/Hora: ${ev.datetime}</p>
+                <p>Preço: R$ ${(ev.price / 100).toFixed(2)}</p>
+                <a href="event.html?event_id=${ev.id}" class="text-blue-500 underline">Ver Detalhes</a>
+              `;
+              list.appendChild(div);
+            });
+          } else {
+            list.innerText = 'Nenhum evento encontrado.';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
