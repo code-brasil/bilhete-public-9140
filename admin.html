@@ -3,96 +3,339 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <title>Painel Admin - Eventos</title>
+    <title>Painel Admin - Gerenciamento</title>
   </head>
-  <body class="p-4 bg-gray-50">
-    <div class="max-w-7xl mx-auto">
-      <h1 class="text-3xl font-bold mb-8">Painel Admin</h1>
-      <div class="grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 class="text-xl font-semibold mb-4">Criar Evento</h2>
-          <form id="eventForm" class="bg-white p-6 rounded-lg shadow-md space-y-4">
-            <input type="text" name="name" placeholder="Nome do Evento" class="border p-2 w-full rounded" required>
-            <input type="text" name="image" placeholder="URL da Imagem" class="border p-2 w-full rounded" required>
-            <input type="text" name="datetime" placeholder="Data/Hora" class="border p-2 w-full rounded" required>
-            <input type="number" name="price" placeholder="Preço (em centavos)" class="border p-2 w-full rounded" required>
-            <select name="category_id" class="border p-2 w-full rounded" required>
-              <option value="">Selecione uma categoria</option>
-            </select>
-            <button type="submit" class="bg-blue-600 text-white p-2 rounded w-full hover:bg-blue-700">Criar Evento</button>
-          </form>
+  <body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+      <h1 class="text-4xl font-bold mb-8 text-center">Painel Administrativo</h1>
+      
+      <!-- Botões para abrir os modais -->
+      <div class="flex justify-end space-x-4 mb-4">
+        <button onclick="openCategoryModal()" class="bg-green-600 text-white px-4 py-2 rounded">Nova Categoria</button>
+        <button onclick="openEventModal()" class="bg-blue-600 text-white px-4 py-2 rounded">Novo Evento</button>
+      </div>
+      
+      <!-- Tabela de Categorias -->
+      <h2 class="text-2xl font-semibold mb-4">Categorias</h2>
+      <table class="min-w-full bg-white shadow-md rounded mb-8">
+        <thead>
+          <tr>
+            <th class="py-2 px-4 border-b">ID</th>
+            <th class="py-2 px-4 border-b">Nome</th>
+            <th class="py-2 px-4 border-b">Cor</th>
+            <th class="py-2 px-4 border-b">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="categoriesTable">
+          <!-- Linhas serão inseridas por JS -->
+        </tbody>
+      </table>
+      
+      <!-- Tabela de Eventos -->
+      <h2 class="text-2xl font-semibold mb-4">Eventos</h2>
+      <table class="min-w-full bg-white shadow-md rounded">
+        <thead>
+          <tr>
+            <th class="py-2 px-4 border-b">ID</th>
+            <th class="py-2 px-4 border-b">Nome</th>
+            <th class="py-2 px-4 border-b">Imagem</th>
+            <th class="py-2 px-4 border-b">Data/Hora</th>
+            <th class="py-2 px-4 border-b">Preço</th>
+            <th class="py-2 px-4 border-b">Categoria</th>
+            <th class="py-2 px-4 border-b">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="eventsTable">
+          <!-- Linhas serão inseridas por JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal para Categoria -->
+    <div id="modalCategory" class="fixed inset-0 hidden bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow-lg w-96">
+        <div class="flex justify-between items-center bg-green-600 text-white px-4 py-2 rounded-t-lg">
+          <h3 id="modalCategoryTitle" class="text-lg">Nova Categoria</h3>
+          <button onclick="closeCategoryModal()" class="text-2xl">&times;</button>
         </div>
-        <div>
-          <h2 class="text-xl font-semibold mb-4">Criar Categoria</h2>
-          <form id="categoryForm" class="bg-white p-6 rounded-lg shadow-md space-y-4">
-            <input type="text" name="name" placeholder="Nome da Categoria" class="border p-2 w-full rounded" required>
-            <input type="color" name="color" value="#3b82f6" class="w-full h-10">
-            <button type="submit" class="bg-green-600 text-white p-2 rounded w-full hover:bg-green-700">Criar Categoria</button>
+        <div class="p-4">
+          <form id="categoryForm" onsubmit="submitCategoryForm(event)">
+            <input type="hidden" id="categoryId">
+            <div class="mb-4">
+              <label class="block mb-1">Nome</label>
+              <input type="text" id="categoryName" class="w-full border rounded p-2" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1">Cor</label>
+              <input type="color" id="categoryColor" class="w-full h-10" value="#3b82f6" required>
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button" onclick="closeCategoryModal()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
+              <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Salvar</button>
+            </div>
           </form>
         </div>
       </div>
-      <div id="response" class="mt-8 text-green-600 font-semibold"></div>
     </div>
+
+    <!-- Modal para Evento -->
+    <div id="modalEvent" class="fixed inset-0 hidden bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow-lg w-96">
+        <div class="flex justify-between items-center bg-blue-600 text-white px-4 py-2 rounded-t-lg">
+          <h3 id="modalEventTitle" class="text-lg">Novo Evento</h3>
+          <button onclick="closeEventModal()" class="text-2xl">&times;</button>
+        </div>
+        <div class="p-4">
+          <form id="eventForm" onsubmit="submitEventForm(event)">
+            <input type="hidden" id="eventId">
+            <div class="mb-4">
+              <label class="block mb-1">Nome</label>
+              <input type="text" id="eventName" class="w-full border rounded p-2" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1">Imagem (URL)</label>
+              <input type="text" id="eventImage" class="w-full border rounded p-2" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1">Data/Hora</label>
+              <input type="text" id="eventDatetime" class="w-full border rounded p-2" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1">Preço (em centavos)</label>
+              <input type="number" id="eventPrice" class="w-full border rounded p-2" required>
+            </div>
+            <div class="mb-4">
+              <label class="block mb-1">Categoria</label>
+              <select id="eventCategory" class="w-full border rounded p-2" required>
+                <option value="">Selecione uma categoria</option>
+              </select>
+            </div>
+            <div class="flex justify-end space-x-2">
+              <button type="button" onclick="closeEventModal()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
+              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Salvar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <script>
-      function loadCategories() {
-        fetch('http://localhost:8000/functions/bilhete/process', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({action: 'list_categories'})
-        })
-        .then(res => res.json())
-        .then(data => {
-          const select = document.querySelector('select[name="category_id"]');
-          select.innerHTML = '<option value="">Selecione uma categoria</option>';
-          data.categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.id;
-            option.textContent = cat.name;
-            select.appendChild(option);
-          });
-        });
+      const projectId = 'bilhete';
+
+      // --- Funções de modal para Categoria ---
+      function openCategoryModal(editData) {
+        document.getElementById('modalCategory').classList.remove('hidden');
+        if(editData){
+          document.getElementById('modalCategoryTitle').innerText = 'Editar Categoria';
+          document.getElementById('categoryId').value = editData.id;
+          document.getElementById('categoryName').value = editData.name;
+          document.getElementById('categoryColor').value = editData.color;
+        } else {
+          document.getElementById('modalCategoryTitle').innerText = 'Nova Categoria';
+          document.getElementById('categoryId').value = '';
+          document.getElementById('categoryName').value = '';
+          document.getElementById('categoryColor').value = '#3b82f6';
+        }
       }
-      document.getElementById('eventForm').addEventListener('submit', function(e){
+      function closeCategoryModal() {
+        document.getElementById('modalCategory').classList.add('hidden');
+      }
+
+      // --- Funções de modal para Evento ---
+      function openEventModal(editData) {
+        document.getElementById('modalEvent').classList.remove('hidden');
+        if(editData){
+          document.getElementById('modalEventTitle').innerText = 'Editar Evento';
+          document.getElementById('eventId').value = editData.id;
+          document.getElementById('eventName').value = editData.name;
+          document.getElementById('eventImage').value = editData.image;
+          document.getElementById('eventDatetime').value = editData.datetime;
+          document.getElementById('eventPrice').value = editData.price;
+          document.getElementById('eventCategory').innerHTML = '<option value="">Selecione uma categoria</option>';
+          loadCategoriesForEvent(editData.category_id);
+        } else {
+          document.getElementById('modalEventTitle').innerText = 'Novo Evento';
+          document.getElementById('eventId').value = '';
+          document.getElementById('eventName').value = '';
+          document.getElementById('eventImage').value = '';
+          document.getElementById('eventDatetime').value = '';
+          document.getElementById('eventPrice').value = '';
+          document.getElementById('eventCategory').innerHTML = '<option value="">Selecione uma categoria</option>';
+          loadCategoriesForEvent();
+        }
+      }
+      function closeEventModal() {
+        document.getElementById('modalEvent').classList.add('hidden');
+      }
+
+      // --- Submissão do formulário de Categoria ---
+      function submitCategoryForm(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = {
-          name: formData.get('name'),
-          image: formData.get('image'),
-          datetime: formData.get('datetime'),
-          price: parseInt(formData.get('price')),
-          category_id: parseInt(formData.get('category_id'))
-        };
-        fetch('http://localhost:8000/functions/bilhete/create_user', {
-          method:'POST',
-          headers: {'Content-Type': 'application/json'},
+        const id = document.getElementById('categoryId').value;
+        const name = document.getElementById('categoryName').value;
+        const color = document.getElementById('categoryColor').value;
+        const url = id
+          ? `http://localhost:8000/functions/${projectId}/process`
+          : `http://localhost:8000/functions/${projectId}/create_category`;
+        const data = id
+          ? { id, name, color, action: 'update_category' }
+          : { name, color };
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         })
-        .then(res=>res.json())
-        .then(res=>{
-          document.getElementById('response').innerText = 'Evento criado com ID: ' + res.event_id;
-          e.target.reset();
-        });
-      });
-      document.getElementById('categoryForm').addEventListener('submit', function(e){
+          .then(res => res.json())
+          .then(resp => {
+            closeCategoryModal();
+            loadAdminData();
+          });
+      }
+
+      // --- Submissão do formulário de Evento ---
+      function submitEventForm(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = {
-          name: formData.get('name'),
-          color: formData.get('color')
-        };
-        fetch('http://localhost:8000/functions/bilhete/create_category', {
-          method:'POST',
-          headers: {'Content-Type': 'application/json'},
+        const id = document.getElementById('eventId').value;
+        const name = document.getElementById('eventName').value;
+        const image = document.getElementById('eventImage').value;
+        const datetime = document.getElementById('eventDatetime').value;
+        const price = parseInt(document.getElementById('eventPrice').value);
+        const category_id = parseInt(document.getElementById('eventCategory').value);
+        const url = id
+          ? `http://localhost:8000/functions/${projectId}/process`
+          : `http://localhost:8000/functions/${projectId}/create_user`;
+        const data = id
+          ? { id, name, image, datetime, price, category_id, action: 'update_event' }
+          : { name, image, datetime, price, category_id };
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         })
-        .then(res=>res.json())
-        .then(res=>{
-          document.getElementById('response').innerText = 'Categoria criada com ID: ' + res.category_id;
-          e.target.reset();
-          loadCategories();
-        });
+          .then(res => res.json())
+          .then(resp => {
+            closeEventModal();
+            loadAdminData();
+          });
+      }
+
+      // --- Carregar Categorias na tabela ---
+      function loadCategories() {
+        fetch(`http://localhost:8000/functions/${projectId}/process`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list_categories' })
+        })
+          .then(res => res.json())
+          .then(data => {
+            const tbody = document.getElementById('categoriesTable');
+            tbody.innerHTML = '';
+            data.categories.forEach(cat => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td class="py-2 px-4 border-b">${cat.id}</td>
+                <td class="py-2 px-4 border-b">${cat.name}</td>
+                <td class="py-2 px-4 border-b"><div style="background-color:${cat.color};width:20px;height:20px;border-radius:50%;"></div></td>
+                <td class="py-2 px-4 border-b">
+                  <button onclick='openCategoryModal(${JSON.stringify(cat)})' class="bg-yellow-500 text-white px-2 py-1 rounded">Editar</button>
+                  <button onclick='deleteCategory(${cat.id})' class="bg-red-600 text-white px-2 py-1 rounded">Deletar</button>
+                </td>
+              `;
+              tbody.appendChild(tr);
+            });
+          });
+      }
+
+      // --- Carregar Eventos na tabela ---
+      function loadEvents() {
+        fetch(`http://localhost:8000/functions/${projectId}/process`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list_events' })
+        })
+          .then(res => res.json())
+          .then(data => {
+            const tbody = document.getElementById('eventsTable');
+            tbody.innerHTML = '';
+            data.events.forEach(ev => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td class="py-2 px-4 border-b">${ev.id}</td>
+                <td class="py-2 px-4 border-b">${ev.name}</td>
+                <td class="py-2 px-4 border-b"><img src="${ev.image}" class="w-16 h-16 object-cover"/></td>
+                <td class="py-2 px-4 border-b">${ev.datetime}</td>
+                <td class="py-2 px-4 border-b">${(ev.price/100).toFixed(2)}</td>
+                <td class="py-2 px-4 border-b">${(ev.category && ev.category.name) || '-'}</td>
+                <td class="py-2 px-4 border-b">
+                  <button onclick='openEventModal(${JSON.stringify(ev)})' class="bg-yellow-500 text-white px-2 py-1 rounded">Editar</button>
+                  <button onclick='deleteEvent(${ev.id})' class="bg-red-600 text-white px-2 py-1 rounded">Deletar</button>
+                </td>
+              `;
+              tbody.appendChild(tr);
+            });
+          });
+      }
+
+      function loadCategoriesForEvent(selectedId) {
+        fetch(`http://localhost:8000/functions/${projectId}/process`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list_categories' })
+        })
+          .then(res => res.json())
+          .then(data => {
+            const select = document.getElementById('eventCategory');
+            select.innerHTML = '<option value="">Selecione uma categoria</option>';
+            data.categories.forEach(cat => {
+              const option = document.createElement('option');
+              option.value = cat.id;
+              option.textContent = cat.name;
+              if(selectedId && parseInt(selectedId) === cat.id) {
+                option.selected = true;
+              }
+              select.appendChild(option);
+            });
+          });
+      }
+
+      // Funções de delete
+      function deleteCategory(id) {
+        if(confirm('Deseja deletar esta categoria?')){
+          fetch(`http://localhost:8000/functions/${projectId}/process`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete_category', id })
+          })
+            .then(res => res.json())
+            .then(resp => {
+              loadAdminData();
+            });
+        }
+      }
+
+      function deleteEvent(id) {
+        if(confirm('Deseja deletar este evento?')){
+          fetch(`http://localhost:8000/functions/${projectId}/process`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete_event', id })
+          })
+            .then(res => res.json())
+            .then(resp => {
+              loadAdminData();
+            });
+        }
+      }
+
+      // Atualiza ambas as tabelas
+      function loadAdminData() {
+        loadCategories();
+        loadEvents();
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        loadAdminData();
       });
-      loadCategories();
     </script>
   </body>
 </html>
